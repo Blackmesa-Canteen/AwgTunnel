@@ -1,0 +1,5 @@
+"""Build-time constants, filled in by Meson."""
+
+APP_ID = "@APP_ID@"
+VERSION = "@VERSION@"
+PKGDATADIR = "@PKGDATADIR@"
