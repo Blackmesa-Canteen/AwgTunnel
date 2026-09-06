@@ -13,46 +13,32 @@ permissions:
   contents: read
 
 jobs:
-  engine-vulnerabilities:
+  # Vendor mode does not consult go.sum, so the sha256 values in go.mod.yml are
+  # what actually protects the build. Re-checking them against the module proxy
+  # from a clean slate catches a hash that was hand-edited or generated from a
+  # tampered local module cache.
+  declared-sources:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
 
-      - name: Vendor the engine
-        run: ./scripts/fetch-engine.sh
+      - name: Every module matches its declared sha256
+        run: ./scripts/verify-engine-sources.sh
 
-      - uses: actions/setup-go@v6
-        with:
-          go-version: '1.27'
-          cache: false
-
-      - name: govulncheck
-        working-directory: vendor/wireproxy-awg
+      - name: The engine tag still points at the pinned commit
         run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-          "$(go env GOPATH)/bin/govulncheck" -mode=source ./...
-
-  supply-chain:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Engine is pinned by commit, not just tag
-        run: |
-          commit=$(grep -oP 'ENGINE_COMMIT="\K[0-9a-f]{40}' scripts/fetch-engine.sh)
-          test -n "$commit"
-          grep -q "$commit" io.github.blackmesa_canteen.AwgTunnel.yml
-          echo "engine pinned at $commit"
-
-      - name: Vendored tree matches the pinned commit
-        run: |
-          ./scripts/fetch-engine.sh
-          cd vendor/wireproxy-awg
-          # go mod verify checks every vendored module against go.sum.
-          go mod verify || true
-          test -d vendor
-          test -f vendor/modules.txt
-          grep -q 'amnezia-vpn/amneziawg-go' vendor/modules.txt
+          set -euo pipefail
+          source scripts/lib.sh
+          tag=$(engine_tag)
+          pinned=$(engine_commit)
+          actual=$(git ls-remote "$ENGINE_URL" "refs/tags/${tag}^{}" | cut -f1)
+          [ -n "$actual" ] || actual=$(git ls-remote "$ENGINE_URL" "refs/tags/${tag}" | cut -f1)
+          echo "manifest pins $pinned; upstream $tag is $actual"
+          if [ "$actual" != "$pinned" ]; then
+            echo "::error::upstream tag $tag has moved — the pin protected us, investigate before bumping"
+            exit 1
+          fi
+        shell: bash
 
       - name: No prebuilt binaries are committed
         run: |
@@ -63,6 +49,39 @@ jobs:
             echo "::error::committed binary found"
             exit 1
           fi
+
+      - name: No upstream source is vendored into this repo
+        run: |
+          # The whole point of go.mod.yml is that we carry hashes, not code.
+          if git ls-files | grep -E '^vendor/'; then
+            echo "::error::upstream source committed under vendor/"
+            exit 1
+          fi
+
+  engine-vulnerabilities:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.27'
+          cache: false
+
+      # Checks out the pinned commit; unlike the Flatpak build this may fetch
+      # from the network, which is fine for a scanner.
+      - name: Check out the pinned engine
+        run: |
+          set -euo pipefail
+          source scripts/lib.sh
+          clone_engine_at_pin "$PWD/.work/engine-scan"
+        shell: bash
+
+      - name: govulncheck
+        working-directory: .work/engine-scan
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          "$(go env GOPATH)/bin/govulncheck" -mode=source ./...
 
   codeql:
     runs-on: ubuntu-latest

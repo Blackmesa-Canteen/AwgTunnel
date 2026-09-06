@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+env:
+  APP_ID: io.github.blackmesa_canteen.AwgTunnel
+
+jobs:
+  # Exactly the same pipeline as an ordinary push: a release must not be built
+  # by a second, less-tested code path.
+  build:
+    uses: ./.github/workflows/flatpak.yml
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v5
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      # The file set to copy into a Flathub submission pull request. Attached
+      # here so it is archived alongside the exact bundles it corresponds to.
+      #
+      # Note that this stops at producing files. Flathub's requirements
+      # prohibit AI tools or agents from opening submission pull requests or
+      # writing their commit messages, descriptions or review replies, so the
+      # pull request itself is deliberately a manual step. See docs/SUBMISSION.md.
+      - name: Assemble Flathub submission files
+        run: |
+          ./scripts/make-submission.sh "${GITHUB_REF_NAME}" flathub-submission
+          (cd flathub-submission && zip -r ../artifacts/flathub-submission-"${GITHUB_REF_NAME}".zip .)
+
+      - name: Checksums
+        working-directory: artifacts
+        run: |
+          sha256sum ./*.flatpak ./*.zip | tee SHA256SUMS
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Notes are left for a human to write; --generate-notes only lists
+          # the merged pull requests, which is a factual summary rather than a
+          # description of the release.
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes \
+            --verify-tag \
+            artifacts/*.flatpak \
+            artifacts/*.zip \
+            artifacts/SHA256SUMS

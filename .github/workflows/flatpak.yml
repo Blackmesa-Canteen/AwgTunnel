@@ -4,40 +4,100 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+  # Reused by release.yml so a tagged build is byte-for-byte the same pipeline
+  # as an ordinary one.
+  workflow_call:
 
 permissions:
   contents: read
 
+# A newer push makes an in-flight build irrelevant, and these builds are long.
+concurrency:
+  group: flatpak-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_ID: io.github.blackmesa_canteen.AwgTunnel
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+          # Flathub builds aarch64 for every submission, so a break there would
+          # block publishing. Catching it here rather than in review.
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+
     steps:
       - uses: actions/checkout@v5
 
-      # Vendors the pinned engine source. Verifies the commit hash, so a moved
-      # tag cannot change what gets built.
-      - name: Vendor the engine
-        run: ./scripts/fetch-engine.sh
-
+      # flatpak-builder runs on the host rather than through org.flatpak.Builder's
+      # `flathub-build` wrapper: that wrapper reaches the host's flatpak via
+      # `flatpak-spawn --host`, which needs a session bus that CI does not have.
+      # The arguments below are the ones the wrapper passes, so the semantics
+      # match Flathub's builders — in particular --sandbox, which denies the
+      # build any network access.
       - name: Install Flatpak tooling
         run: |
           sudo apt-get update
-          sudo apt-get install -y flatpak
+          sudo apt-get install -y flatpak flatpak-builder
           flatpak remote-add --user --if-not-exists flathub \
             https://dl.flathub.org/repo/flathub.flatpakrepo
-          flatpak install --user -y --noninteractive flathub org.flatpak.Builder
 
-      # No --share=network is granted to the build, so this also proves the
-      # build is fully offline and reproducible from declared sources.
+      - name: Install runtimes
+        run: |
+          flatpak install --user -y --noninteractive flathub \
+            org.gnome.Platform//50 \
+            org.gnome.Sdk//50 \
+            org.freedesktop.Sdk.Extension.golang//25.08 \
+            org.flatpak.Builder
+
+      # Keyed on the manifest and the pinned module hashes: any engine bump
+      # invalidates the cache, and nothing else needs to.
+      - name: Cache downloaded sources
+        uses: actions/cache@v4
+        with:
+          path: .flatpak-builder/downloads
+          key: fb-downloads-${{ matrix.arch }}-${{ hashFiles('io.github.blackmesa_canteen.AwgTunnel.yml', 'go.mod.yml') }}
+          restore-keys: fb-downloads-${{ matrix.arch }}-
+
       - name: Build
         run: |
-          flatpak run --command=flathub-build org.flatpak.Builder \
-            io.github.blackmesa_canteen.AwgTunnel.yml
+          flatpak-builder \
+            --verbose \
+            --force-clean \
+            --sandbox \
+            --user \
+            --override-source-date-epoch 1321009871 \
+            --repo=repo \
+            builddir "$APP_ID.yml"
+
+      # The engine is the part that could plausibly build but not run: it is
+      # reconstructed from module archives rather than a vendor tree produced by
+      # `go mod vendor`, so check the binary actually executes and reports the
+      # version the manifest pinned.
+      - name: Engine smoke test
+        run: |
+          engine=builddir/files/bin/awg-tunnel-engine
+          test -x "$engine"
+          "$engine" --version
+          expected=$(grep -oP "main\.version=\Kv[0-9.]+" "$APP_ID.yml")
+          "$engine" --version | grep -qF "$expected" || {
+            echo "::error::engine reports $("$engine" --version), expected $expected"
+            exit 1
+          }
 
       - name: Lint manifest
         run: |
           flatpak run --command=flatpak-builder-lint org.flatpak.Builder \
-            manifest io.github.blackmesa_canteen.AwgTunnel.yml
+            manifest "$APP_ID.yml"
 
       - name: Lint repository
         run: |
@@ -46,11 +106,57 @@ jobs:
 
       - name: Bundle
         run: |
-          flatpak build-bundle repo awg-tunnel.flatpak \
-            io.github.blackmesa_canteen.AwgTunnel
+          flatpak build-bundle repo \
+            "awg-tunnel-${{ matrix.arch }}.flatpak" "$APP_ID" \
+            --arch=${{ matrix.arch }}
 
+      # Download from the run's Artifacts section, then:
+      #   flatpak install --user awg-tunnel-<arch>.flatpak
       - uses: actions/upload-artifact@v4
         with:
-          name: awg-tunnel-flatpak
-          path: awg-tunnel.flatpak
+          name: awg-tunnel-${{ matrix.arch }}-${{ github.sha }}
+          path: awg-tunnel-${{ matrix.arch }}.flatpak
           if-no-files-found: error
+          compression-level: 0
+
+  # Proves the manifest Flathub would actually build: identical to the above
+  # except the app itself comes from a public git URL at this commit instead of
+  # the working tree. Only meaningful once the commit is pushed, so it is
+  # skipped on pull requests.
+  submission-manifest:
+    name: Flathub-shaped manifest
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Install Flatpak tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          flatpak remote-add --user --if-not-exists flathub \
+            https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y --noninteractive flathub \
+            org.gnome.Platform//50 \
+            org.gnome.Sdk//50 \
+            org.freedesktop.Sdk.Extension.golang//25.08 \
+            org.flatpak.Builder
+
+      - name: Derive the submission manifest for this commit
+        run: |
+          ./scripts/make-submission.sh "${{ github.sha }}" "$RUNNER_TEMP/flathub"
+          cat "$RUNNER_TEMP/flathub/$APP_ID.yml"
+
+      - name: Build it
+        working-directory: ${{ runner.temp }}/flathub
+        run: |
+          flatpak-builder --force-clean --sandbox --user \
+            --repo=repo builddir "$APP_ID.yml"
+
+      - name: Lint it
+        working-directory: ${{ runner.temp }}/flathub
+        run: |
+          flatpak run --command=flatpak-builder-lint org.flatpak.Builder \
+            manifest "$APP_ID.yml"
