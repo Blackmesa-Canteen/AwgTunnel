@@ -47,25 +47,21 @@ If you rename the account or the repository, re-run
 stored profiles — the app ID determines the data directory and the keyring
 attributes.
 
-### 3. Add screenshots
+### 3. Screenshots — done, but re-pin the URLs if you move the tag
 
-`flatpak-builder-lint repo repo` currently fails with
-`metainfo-missing-screenshots`, and the buildbot runs that same linter. Add at
-least one screenshot to
-[`data/io.github.blackmesa_canteen.AwgTunnel.metainfo.xml`](../data/io.github.blackmesa_canteen.AwgTunnel.metainfo.xml):
+Three screenshots live in [`data/screenshots/`](../data/screenshots/) and are
+wired into
+[`data/io.github.blackmesa_canteen.AwgTunnel.metainfo.xml`](../data/io.github.blackmesa_canteen.AwgTunnel.metainfo.xml)
+as `raw.githubusercontent.com` URLs pinned to the `v0.1.0` tag — Flathub
+requires a tag or commit, never a branch, so a later push cannot silently
+change what a published release links to.
 
-```xml
-<screenshots>
-  <screenshot type="default">
-    <image>https://raw.githubusercontent.com/Blackmesa-Canteen/AwgTunnel/v0.1.0/data/screenshots/main.png</image>
-    <caption>A connected tunnel showing its proxy address</caption>
-  </screenshot>
-</screenshots>
-```
-
-Point at a tagged path rather than `main`, so the image cannot change under a
-published release. Take them at a sensible window size, in both light and dark
-if you add more than one.
+If you cut a new tag before submitting, update the three URLs to match it
+first (they will 404 against a tag that no longer exists), then re-run the
+lint check below. All three PNGs were re-encoded from raw pixels before being
+committed, stripping every ancillary chunk — GNOME's screenshot tool embeds
+the capture window's on-screen position and monitor name by default. Any
+screenshot added later should get the same treatment before it is committed.
 
 ### 4. Everything else is already in place
 

@@ -22,6 +22,19 @@ such component.
 If you need a whole-device tunnel, use `awg-quick` with the AmneziaWG kernel
 module or `amneziawg-go` on the host instead.
 
+## Screenshots
+
+|  |  |
+|---|---|
+| ![A connected profile, showing the obfuscated protocol, SOCKS5 proxy address and live handshake status](data/screenshots/tunnel-status.png) | ![Importing a WireGuard or AmneziaWG configuration file](data/screenshots/import-profile.png) |
+
+<details>
+<summary>About dialog</summary>
+
+![About AWG Tunnel](data/screenshots/about.png)
+
+</details>
+
 ## How it works
 
 ```
@@ -132,6 +145,19 @@ python3 -m pytest tests/ -q -m e2e   # real tunnel on loopback
 flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest \
     io.github.blackmesa_canteen.AwgTunnel.yml
 ```
+
+## AI-assisted development
+
+Most of this project's code, tests, CI and documentation were written with AI
+assistance (Claude), directed and reviewed by a human. This is disclosed here
+in the interest of transparency, and again in
+[docs/SUBMISSION.md](docs/SUBMISSION.md) for Flathub's own disclosure
+requirement, which this project intends to meet in full — see
+[CHANGELOG.md](CHANGELOG.md) for what has been reviewed and when.
+
+AI tools do not open pull requests against this repository, choose what to
+merge, or represent the project to Flathub reviewers; that responsibility
+stays with a human maintainer.
 
 ## Licence
 
