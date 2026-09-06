@@ -46,6 +46,24 @@
 
   <launchable type="desktop-id">io.github.blackmesa_canteen.AwgTunnel.desktop</launchable>
 
+  <!-- Pinned to the v0.1.0 tag rather than main: Flathub requires screenshot
+       URLs to reference a tag or commit, not a branch, so a later push cannot
+       silently change what a published release links to. -->
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/Blackmesa-Canteen/AwgTunnel/v0.1.0/data/screenshots/tunnel-status.png</image>
+      <caption>A connected profile, showing the obfuscated protocol, SOCKS5 proxy address and live handshake status</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/Blackmesa-Canteen/AwgTunnel/v0.1.0/data/screenshots/import-profile.png</image>
+      <caption>Importing a WireGuard or AmneziaWG configuration file</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/Blackmesa-Canteen/AwgTunnel/v0.1.0/data/screenshots/about.png</image>
+      <caption>About AWG Tunnel</caption>
+    </screenshot>
+  </screenshots>
+
   <categories>
     <category>Network</category>
     <category>Security</category>
