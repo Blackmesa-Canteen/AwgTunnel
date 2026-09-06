@@ -44,8 +44,13 @@ jobs:
       # The arguments below are the ones the wrapper passes, so the semantics
       # match Flathub's builders — in particular --sandbox, which denies the
       # build any network access.
+      # ubuntu-latest's own apt package is flatpak-builder 1.4.2, which predates
+      # --compose-url-policy (needed below in the build job) entirely.
+      # ppa:flatpak/stable is the flatpak project's own PPA and carries 1.4.8,
+      # which has it. Applied here too so both jobs use the same version.
       - name: Install Flatpak tooling
         run: |
+          sudo add-apt-repository -y ppa:flatpak/stable
           sudo apt-get update
           sudo apt-get install -y flatpak flatpak-builder
           flatpak remote-add --user --if-not-exists flathub \
@@ -140,8 +145,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Same reasoning as the build job above: ubuntu-latest's apt package
+      # predates --compose-url-policy. Not used in this job, but kept so both
+      # jobs run the same flatpak-builder version.
       - name: Install Flatpak tooling
         run: |
+          sudo add-apt-repository -y ppa:flatpak/stable
           sudo apt-get update
           sudo apt-get install -y flatpak flatpak-builder
           flatpak remote-add --user --if-not-exists flathub \
