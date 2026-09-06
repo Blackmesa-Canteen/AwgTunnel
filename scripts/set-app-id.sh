@@ -23,7 +23,17 @@ if [[ ! "$account" =~ ^[A-Za-z0-9][A-Za-z0-9-]{0,38}$ ]]; then
     exit 1
 fi
 
-new_vendor="io.github.${account,,}"
+# Flathub requires the domain portion of an ID to be lowercase, with dashes
+# converted to underscores and a leading digit prefixed by an underscore. The
+# underscores map back to dashes when resolving the GitHub URL, so
+# io.github.example_foo.Bar corresponds to github.com/example-foo/Bar.
+vendor_component="${account,,}"
+vendor_component="${vendor_component//-/_}"
+case "$vendor_component" in
+    [0-9]*) vendor_component="_${vendor_component}" ;;
+esac
+
+new_vendor="io.github.${vendor_component}"
 new_id="${new_vendor}.AwgTunnel"
 
 if [[ "$new_id" == "$OLD_ID" ]]; then
@@ -70,6 +80,9 @@ done
 
 echo "Done. Remaining references (should be none):"
 grep -rn "$OLD_VENDOR" --exclude-dir=.git --exclude-dir=vendor . || echo "  none"
+echo
+echo "The ID resolves to https://github.com/${account}/AwgTunnel — the repository"
+echo "must carry that name, or Flathub's linter reports appid-url-not-reachable."
 echo
 echo "Next: update the homepage and bugtracker URLs in the metainfo, then run"
 echo "  python3 -m pytest tests/ -q"
