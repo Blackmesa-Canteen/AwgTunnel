@@ -1,0 +1,56 @@
+name: Flatpak
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Vendors the pinned engine source. Verifies the commit hash, so a moved
+      # tag cannot change what gets built.
+      - name: Vendor the engine
+        run: ./scripts/fetch-engine.sh
+
+      - name: Install Flatpak tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak
+          flatpak remote-add --user --if-not-exists flathub \
+            https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y --noninteractive flathub org.flatpak.Builder
+
+      # No --share=network is granted to the build, so this also proves the
+      # build is fully offline and reproducible from declared sources.
+      - name: Build
+        run: |
+          flatpak run --command=flathub-build org.flatpak.Builder \
+            io.github.awgtunnel.AwgTunnel.yml
+
+      - name: Lint manifest
+        run: |
+          flatpak run --command=flatpak-builder-lint org.flatpak.Builder \
+            manifest io.github.awgtunnel.AwgTunnel.yml
+
+      - name: Lint repository
+        run: |
+          flatpak run --command=flatpak-builder-lint org.flatpak.Builder \
+            repo repo
+
+      - name: Bundle
+        run: |
+          flatpak build-bundle repo awg-tunnel.flatpak \
+            io.github.awgtunnel.AwgTunnel
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: awg-tunnel-flatpak
+          path: awg-tunnel.flatpak
+          if-no-files-found: error

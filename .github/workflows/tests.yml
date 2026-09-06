@@ -1,0 +1,82 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install tooling
+        run: python -m pip install --upgrade pytest ruff
+
+      # The unit suite deliberately avoids importing GTK, so it needs no
+      # display, no D-Bus and no GNOME runtime.
+      - name: Unit tests
+        run: python -m pytest tests/ -q
+
+      - name: Lint
+        run: |
+          ruff check src tests
+          ruff format --check src tests
+
+  end-to-end:
+    # Stands up both ends of a real obfuscated tunnel on loopback. No TUN
+    # device and no privileges are needed, because the engine terminates the
+    # tunnel in userspace and can act as a responder.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.27'
+          cache: false
+
+      - name: Vendor and build the engine
+        run: |
+          ./scripts/fetch-engine.sh
+          cd vendor/wireproxy-awg
+          go build -mod=vendor -o "$GITHUB_WORKSPACE/awg-tunnel-engine" ./cmd/wireproxy
+
+      - name: Install pytest
+        run: python -m pip install --upgrade pytest
+
+      - name: End-to-end tunnel test
+        env:
+          AWG_TUNNEL_ENGINE: ${{ github.workspace }}/awg-tunnel-engine
+        run: python -m pytest tests/ -q -m e2e
+
+  metadata:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install validators
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y appstream desktop-file-utils
+
+      - name: Validate metainfo
+        run: |
+          appstreamcli validate --no-net \
+            data/io.github.awgtunnel.AwgTunnel.metainfo.xml
+
+      - name: Validate desktop entry
+        run: |
+          desktop-file-validate data/io.github.awgtunnel.AwgTunnel.desktop

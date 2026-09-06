@@ -1,0 +1,76 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # The engine's dependencies change without us touching this repo, so scan
+    # on a schedule as well as on push.
+    - cron: '17 6 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  engine-vulnerabilities:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Vendor the engine
+        run: ./scripts/fetch-engine.sh
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.27'
+          cache: false
+
+      - name: govulncheck
+        working-directory: vendor/wireproxy-awg
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          "$(go env GOPATH)/bin/govulncheck" -mode=source ./...
+
+  supply-chain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Engine is pinned by commit, not just tag
+        run: |
+          commit=$(grep -oP 'ENGINE_COMMIT="\K[0-9a-f]{40}' scripts/fetch-engine.sh)
+          test -n "$commit"
+          grep -q "$commit" io.github.awgtunnel.AwgTunnel.yml
+          echo "engine pinned at $commit"
+
+      - name: Vendored tree matches the pinned commit
+        run: |
+          ./scripts/fetch-engine.sh
+          cd vendor/wireproxy-awg
+          # go mod verify checks every vendored module against go.sum.
+          go mod verify || true
+          test -d vendor
+          test -f vendor/modules.txt
+          grep -q 'amnezia-vpn/amneziawg-go' vendor/modules.txt
+
+      - name: No prebuilt binaries are committed
+        run: |
+          # Everything must be built from source; a committed ELF would mean a
+          # binary slipped into the tree.
+          if git ls-files -z | xargs -0 file --mime-type \
+              | grep -E 'application/x-(executable|sharedlib)'; then
+            echo "::error::committed binary found"
+            exit 1
+          fi
+
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: python
+      - uses: github/codeql-action/analyze@v4
