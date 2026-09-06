@@ -24,8 +24,19 @@ modules as `github.com/amnezia-vpn/amneziawg-go/v3 v3.1.20260814`.
   which in turn uses cryptographic code from Google's gVisor netstack (Apache-2.0
   / BSD-3-Clause) for the userspace TCP/IP stack.
 
-The complete set of vendored Go module licences is present in
-`vendor/wireproxy-awg/vendor/` after running `scripts/fetch-engine.sh`.
+## The full set of bundled Go modules
+
+Every Go module compiled into the engine is declared in
+[go.mod.yml](go.mod.yml), pinned by sha256 to an archive on the Go module
+proxy. That file is the authoritative list of what is bundled; each module's own
+licence text ships inside its archive.
+
+To read them locally, build once (`flatpak-builder` keeps the build tree) and
+look at the reconstructed vendor directory:
+
+```bash
+find .flatpak-builder/build/awg-tunnel-engine*/vendor -iname 'LICENSE*'
+```
 
 ## Trademarks
 

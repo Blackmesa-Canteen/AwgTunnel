@@ -86,5 +86,9 @@ echo
 echo "The ID resolves to https://github.com/${account}/AwgTunnel — the repository"
 echo "must carry that name, or Flathub's linter reports appid-url-not-reachable."
 echo
-echo "Next: update the homepage and bugtracker URLs in the metainfo, then run"
+echo "Next, update the account name in each of these, then run the tests:"
+echo "  - homepage and bugtracker URLs in data/*.metainfo.xml"
+echo "  - APP_URL in scripts/make-submission.sh (the submission's git source)"
+echo "  - the URLs in docs/SUBMISSION.md"
+echo
 echo "  python3 -m pytest tests/ -q"

@@ -72,30 +72,63 @@ keyring is available, the key is kept in the app's own data directory with
 quietly. While a tunnel is running, the generated engine configuration lives in
 `XDG_RUNTIME_DIR` (a per-user tmpfs) and is deleted on disconnect.
 
-## Building
+## Installing a prebuilt bundle
 
-Requires `flatpak` and `podman`/`docker` (the latter only to vendor Go modules).
+Every push builds a bundle for `x86_64` and `aarch64`. Open the latest run of
+the **Flatpak** workflow under the repository's Actions tab, download the
+artifact for your architecture, then:
 
 ```bash
-# 1. Fetch the pinned engine source and vendor its Go dependencies.
-./scripts/fetch-engine.sh
-
-# 2. Build and install for the current user.
-flatpak run --command=flathub-build org.flatpak.Builder --install \
-    io.github.blackmesa_canteen.AwgTunnel.yml
-
-# 3. Run it.
+flatpak install --user awg-tunnel-x86_64.flatpak
 flatpak run io.github.blackmesa_canteen.AwgTunnel
 ```
 
-The build itself has **no network access**: the engine is built from vendored
-modules with `-mod=vendor` and `GOTOOLCHAIN=local`, so it cannot silently fetch
-code or a toolchain.
+Tagged releases attach the same bundles, plus a `SHA256SUMS` file.
+
+## Building from source
+
+Requires only `flatpak`. There is nothing to fetch or vendor first — the
+manifest declares every source, including the engine's Go modules.
+
+```bash
+flatpak install --user flathub org.flatpak.Builder
+
+flatpak run --command=flathub-build org.flatpak.Builder --install \
+    io.github.blackmesa_canteen.AwgTunnel.yml
+
+flatpak run io.github.blackmesa_canteen.AwgTunnel
+```
+
+**No upstream source code is committed to this repository.** The engine is
+[`wireproxy-awg`](https://github.com/artem-russkikh/wireproxy-awg), fetched at a
+commit pinned in the manifest; its 15 Go modules are declared in
+[go.mod.yml](go.mod.yml) as sha256-pinned archives from the Go module proxy,
+which rebuild the `vendor/` tree during the build.
+
+The build itself has **no network access** (`--sandbox`). Sources are fetched
+and hash-checked beforehand, then the engine is compiled with `-mod=vendor` and
+`GOTOOLCHAIN=local`, so it cannot silently fetch code or a toolchain.
+
+### Bumping the engine
+
+```bash
+./scripts/update-engine.sh v1.0.19   # rewrites the pin, go.mod.yml, modules.txt
+./scripts/verify-engine-sources.sh   # re-checks every hash against the proxy
+```
+
+`update-engine.sh` needs `podman` or `docker`; it runs the generator in a
+container so no host Go toolchain is required. It is a maintainer tool — no
+build ever runs it. Review the resulting hash diff before committing: an
+unexplained hash change is exactly the signal you want to see.
 
 ### Tests and linting
 
 ```bash
-python3 -m pytest tests/ -q
+python3 -m pytest tests/ -q          # unit suite; no GTK, no display needed
+
+eval "$(./scripts/build-test-engine.sh --export)"
+python3 -m pytest tests/ -q -m e2e   # real tunnel on loopback
+
 flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest \
     io.github.blackmesa_canteen.AwgTunnel.yml
 ```
