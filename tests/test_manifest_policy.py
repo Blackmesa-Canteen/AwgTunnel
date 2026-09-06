@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-MANIFEST = REPO / "io.github.awgtunnel.AwgTunnel.yml"
+MANIFEST = REPO / "io.github.blackmesa_canteen.AwgTunnel.yml"
 
 #: The complete, intended permission set.
 EXPECTED_FINISH_ARGS = {
@@ -103,7 +103,7 @@ def test_build_has_no_network_escape():
 
 
 def test_app_id_is_consistent_everywhere():
-    app_id = "io.github.awgtunnel.AwgTunnel"
+    app_id = "io.github.blackmesa_canteen.AwgTunnel"
     assert f"id: {app_id}" in manifest_text()
     assert (REPO / "data" / f"{app_id}.desktop").is_file()
     assert (REPO / "data" / f"{app_id}.metainfo.xml").is_file()

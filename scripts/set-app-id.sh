@@ -9,8 +9,8 @@
 # Example: ./scripts/set-app-id.sh alice  ->  io.github.alice.AwgTunnel
 set -euo pipefail
 
-OLD_ID="io.github.awgtunnel.AwgTunnel"
-OLD_VENDOR="io.github.awgtunnel"
+OLD_ID="io.github.blackmesa_canteen.AwgTunnel"
+OLD_VENDOR="io.github.blackmesa_canteen"
 
 if [[ $# -ne 1 ]]; then
     sed -n '2,10p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'
@@ -48,11 +48,11 @@ echo "Renaming $OLD_ID -> $new_id"
 
 # Rename the files whose names encode the ID.
 for path in \
-    "io.github.awgtunnel.AwgTunnel.yml" \
-    "data/io.github.awgtunnel.AwgTunnel.desktop" \
-    "data/io.github.awgtunnel.AwgTunnel.metainfo.xml" \
-    "data/icons/io.github.awgtunnel.AwgTunnel.svg" \
-    "data/icons/io.github.awgtunnel.AwgTunnel-symbolic.svg"
+    "io.github.blackmesa_canteen.AwgTunnel.yml" \
+    "data/io.github.blackmesa_canteen.AwgTunnel.desktop" \
+    "data/io.github.blackmesa_canteen.AwgTunnel.metainfo.xml" \
+    "data/icons/io.github.blackmesa_canteen.AwgTunnel.svg" \
+    "data/icons/io.github.blackmesa_canteen.AwgTunnel-symbolic.svg"
 do
     [[ -e "$path" ]] || continue
     new_path="${path//$OLD_ID/$new_id}"
@@ -71,6 +71,8 @@ mapfile -t files < <(
         --exclude-dir=vendor \
         --exclude-dir=.flatpak-builder \
         --exclude-dir=.work \
+        --exclude-dir=repo \
+        --exclude-dir=builddir \
         . || true
 )
 
@@ -79,7 +81,7 @@ for file in "${files[@]}"; do
 done
 
 echo "Done. Remaining references (should be none):"
-grep -rn "$OLD_VENDOR" --exclude-dir=.git --exclude-dir=vendor . || echo "  none"
+grep -rn "$OLD_VENDOR" --exclude-dir=.git --exclude-dir=vendor --exclude-dir=repo --exclude-dir=builddir . || echo "  none"
 echo
 echo "The ID resolves to https://github.com/${account}/AwgTunnel — the repository"
 echo "must carry that name, or Flathub's linter reports appid-url-not-reachable."

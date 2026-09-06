@@ -32,12 +32,12 @@ jobs:
       - name: Build
         run: |
           flatpak run --command=flathub-build org.flatpak.Builder \
-            io.github.awgtunnel.AwgTunnel.yml
+            io.github.blackmesa_canteen.AwgTunnel.yml
 
       - name: Lint manifest
         run: |
           flatpak run --command=flatpak-builder-lint org.flatpak.Builder \
-            manifest io.github.awgtunnel.AwgTunnel.yml
+            manifest io.github.blackmesa_canteen.AwgTunnel.yml
 
       - name: Lint repository
         run: |
@@ -47,7 +47,7 @@ jobs:
       - name: Bundle
         run: |
           flatpak build-bundle repo awg-tunnel.flatpak \
-            io.github.awgtunnel.AwgTunnel
+            io.github.blackmesa_canteen.AwgTunnel
 
       - uses: actions/upload-artifact@v4
         with:

@@ -5,7 +5,7 @@ project(
   meson_version: '>= 1.0.0',
 )
 
-app_id = 'io.github.awgtunnel.AwgTunnel'
+app_id = 'io.github.blackmesa_canteen.AwgTunnel'
 python = import('python').find_installation('python3')
 
 prefix = get_option('prefix')

@@ -1,4 +1,4 @@
-id: io.github.awgtunnel.AwgTunnel
+id: io.github.blackmesa_canteen.AwgTunnel
 runtime: org.gnome.Platform
 runtime-version: '50'
 sdk: org.gnome.Sdk

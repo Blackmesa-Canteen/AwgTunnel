@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.awgtunnel.AwgTunnel</id>
+  <id>io.github.blackmesa_canteen.AwgTunnel</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
 
   <name>AWG Tunnel</name>
   <summary>Obfuscated WireGuard tunnels without root</summary>
 
-  <developer id="io.github.awgtunnel">
+  <developer id="io.github.blackmesa_canteen">
     <name>AWG Tunnel contributors</name>
   </developer>
 
@@ -44,7 +44,7 @@
     </p>
   </description>
 
-  <launchable type="desktop-id">io.github.awgtunnel.AwgTunnel.desktop</launchable>
+  <launchable type="desktop-id">io.github.blackmesa_canteen.AwgTunnel.desktop</launchable>
 
   <categories>
     <category>Network</category>
@@ -60,8 +60,8 @@
     <keyword>obfuscation</keyword>
   </keywords>
 
-  <url type="homepage">https://github.com/awgtunnel/awg-tunnel</url>
-  <url type="bugtracker">https://github.com/awgtunnel/awg-tunnel/issues</url>
+  <url type="homepage">https://github.com/Blackmesa-Canteen/AwgTunnel</url>
+  <url type="bugtracker">https://github.com/Blackmesa-Canteen/AwgTunnel/issues</url>
 
   <provides>
     <binary>awg-tunnel</binary>

@@ -82,10 +82,10 @@ Requires `flatpak` and `podman`/`docker` (the latter only to vendor Go modules).
 
 # 2. Build and install for the current user.
 flatpak run --command=flathub-build org.flatpak.Builder --install \
-    io.github.awgtunnel.AwgTunnel.yml
+    io.github.blackmesa_canteen.AwgTunnel.yml
 
 # 3. Run it.
-flatpak run io.github.awgtunnel.AwgTunnel
+flatpak run io.github.blackmesa_canteen.AwgTunnel
 ```
 
 The build itself has **no network access**: the engine is built from vendored
@@ -97,7 +97,7 @@ code or a toolchain.
 ```bash
 python3 -m pytest tests/ -q
 flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest \
-    io.github.awgtunnel.AwgTunnel.yml
+    io.github.blackmesa_canteen.AwgTunnel.yml
 ```
 
 ## Licence

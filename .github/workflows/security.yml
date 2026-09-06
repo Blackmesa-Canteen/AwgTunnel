@@ -41,7 +41,7 @@ jobs:
         run: |
           commit=$(grep -oP 'ENGINE_COMMIT="\K[0-9a-f]{40}' scripts/fetch-engine.sh)
           test -n "$commit"
-          grep -q "$commit" io.github.awgtunnel.AwgTunnel.yml
+          grep -q "$commit" io.github.blackmesa_canteen.AwgTunnel.yml
           echo "engine pinned at $commit"
 
       - name: Vendored tree matches the pinned commit
