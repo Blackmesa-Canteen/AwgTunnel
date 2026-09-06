@@ -106,9 +106,8 @@ jobs:
 
       - name: Bundle
         run: |
-          flatpak build-bundle repo \
-            "awg-tunnel-${{ matrix.arch }}.flatpak" "$APP_ID" \
-            --arch=${{ matrix.arch }}
+          flatpak build-bundle --arch=${{ matrix.arch }} repo \
+            "awg-tunnel-${{ matrix.arch }}.flatpak" "$APP_ID"
 
       # Download from the run's Artifacts section, then:
       #   flatpak install --user awg-tunnel-<arch>.flatpak
