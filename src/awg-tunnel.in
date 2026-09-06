@@ -1,0 +1,11 @@
+#!@PYTHON@
+"""Launcher for AWG Tunnel."""
+
+import sys
+
+sys.path.insert(1, "@PKGDATADIR@")
+
+from awgtunnel.main import main  # noqa: E402
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
