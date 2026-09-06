@@ -1,0 +1,26 @@
+# Rules are selected explicitly rather than relying on defaults, so a new ruff
+# release cannot fail CI by enabling extra checks.
+line-length = 88
+target-version = "py312"
+
+[lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "W",    # pycodestyle warnings
+    "I",    # import sorting
+    "UP",   # pyupgrade
+    "B",    # bugbear
+    "C4",   # comprehensions
+    "SIM",  # simplify
+]
+ignore = [
+    "E501",  # line length is enforced by `ruff format`
+]
+
+[lint.per-file-ignores]
+# Tests reach into module internals deliberately.
+"tests/*" = ["B011"]
+# GObject subclasses need runtime imports after gi.require_version().
+"src/awgtunnel/main.py" = ["E402"]
+"src/awgtunnel/storage.py" = ["E402"]

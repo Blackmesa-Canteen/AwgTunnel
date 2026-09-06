@@ -1,0 +1,40 @@
+# --- Vendored engine source -------------------------------------------------
+# Fetched and vendored by scripts/fetch-engine.sh: ~16 MB of Go dependencies,
+# reproducible from the commit pinned in that script, so it is not tracked.
+/vendor/wireproxy-awg/
+
+# --- Flatpak build output ----------------------------------------------------
+/.flatpak-builder/
+/builddir/
+/build/
+/build-dir/
+/repo/
+*.flatpak
+
+# --- Meson -------------------------------------------------------------------
+/subprojects/*/
+!/subprojects/*.wrap
+
+# --- Python ------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# --- Scratch space -----------------------------------------------------------
+# Local experiments; never part of a build.
+/.work/
+
+# --- Editors and desktops ----------------------------------------------------
+.idea/
+*.swp
+*~
+.DS_Store
+
+# --- Secrets -----------------------------------------------------------------
+# Guard against a real tunnel profile being committed by accident: they carry
+# private keys. The test fixtures build their key material in Python instead.
+*.conf
+!data/**/*.conf
