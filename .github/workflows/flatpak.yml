@@ -68,6 +68,13 @@ jobs:
           key: fb-downloads-${{ matrix.arch }}-${{ hashFiles('io.github.blackmesa_canteen.AwgTunnel.yml', 'go.mod.yml') }}
           restore-keys: fb-downloads-${{ matrix.arch }}-
 
+      # --mirror-screenshots-url and --compose-url-policy match what the
+      # flathub-build wrapper (org.flatpak.Builder's flathub-builder.sh)
+      # passes. Missing the first one is exactly why this passed locally,
+      # using that wrapper, and failed here the first time this ran: without
+      # it appstreamcli composes screenshots as external URLs, which the repo
+      # linter flags as appstream-external-screenshot-url /
+      # appstream-screenshots-not-mirrored-in-ostree.
       - name: Build
         run: |
           flatpak-builder \
@@ -76,6 +83,8 @@ jobs:
             --sandbox \
             --user \
             --override-source-date-epoch 1321009871 \
+            --mirror-screenshots-url=https://dl.flathub.org/media \
+            --compose-url-policy=full \
             --repo=repo \
             builddir "$APP_ID.yml"
 
