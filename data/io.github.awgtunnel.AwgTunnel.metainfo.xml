@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.awgtunnel.AwgTunnel</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>AWG Tunnel</name>
+  <summary>Obfuscated WireGuard tunnels without root</summary>
+
+  <developer id="io.github.awgtunnel">
+    <name>AWG Tunnel contributors</name>
+  </developer>
+
+  <description>
+    <p>
+      AWG Tunnel connects to WireGuard and AmneziaWG servers entirely in
+      userspace and exposes the tunnel as a local SOCKS5 proxy. It needs no
+      root access, no kernel module and no system service, which makes it
+      suitable for immutable and image-based systems.
+    </p>
+    <p>
+      Obfuscation parameters are read directly from your profile and passed to
+      the tunnel engine unchanged, so configurations exported from an existing
+      AmneziaWG server work as they are.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Imports standard wg-quick and awg-quick configuration files</li>
+      <li>Supports AmneziaWG obfuscation, including junk packets, packet padding and magic header ranges</li>
+      <li>Reports genuine connection state from the tunnel's own handshake and traffic counters</li>
+      <li>Verifies that traffic really leaves through the tunnel</li>
+      <li>Stores private keys in the system keyring</li>
+    </ul>
+    <p>
+      Please note: this is a proxy, not a system-wide VPN. Only applications
+      that you point at the proxy are tunnelled, and there is no kill switch.
+      Applications that ignore the proxy continue to use your normal
+      connection.
+    </p>
+    <p>
+      AWG Tunnel is not affiliated with, endorsed by or sponsored by the
+      WireGuard or Amnezia projects. WireGuard is a registered trademark of
+      Jason A. Donenfeld.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">io.github.awgtunnel.AwgTunnel.desktop</launchable>
+
+  <categories>
+    <category>Network</category>
+    <category>Security</category>
+  </categories>
+
+  <keywords>
+    <keyword>VPN</keyword>
+    <keyword>WireGuard</keyword>
+    <keyword>AmneziaWG</keyword>
+    <keyword>SOCKS5</keyword>
+    <keyword>proxy</keyword>
+    <keyword>obfuscation</keyword>
+  </keywords>
+
+  <url type="homepage">https://github.com/awgtunnel/awg-tunnel</url>
+  <url type="bugtracker">https://github.com/awgtunnel/awg-tunnel/issues</url>
+
+  <provides>
+    <binary>awg-tunnel</binary>
+  </provides>
+
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+
+  <recommends>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </recommends>
+
+  <content_rating type="oars-1.1"/>
+
+  <releases>
+    <release version="0.1.0" date="2026-09-06">
+      <description>
+        <p>First release.</p>
+      </description>
+    </release>
+  </releases>
+</component>

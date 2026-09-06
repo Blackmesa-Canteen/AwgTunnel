@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3584e4"/>
+      <stop offset="1" stop-color="#1a5fb4"/>
+    </linearGradient>
+    <linearGradient id="mouth" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#102b52"/>
+      <stop offset="1" stop-color="#1c3f77"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#bg)"/>
+
+  <!-- Tunnel mouth -->
+  <path d="M34 92 V64 a30 30 0 0 1 60 0 v28 z" fill="url(#mouth)"/>
+  <path d="M34 92 V64 a30 30 0 0 1 60 0 v28"
+        fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="5"
+        stroke-linecap="round"/>
+
+  <!-- Traffic leaving the tunnel, with the obfuscation "junk" trailing it -->
+  <path d="M52 78 H86" fill="none" stroke="#ffffff" stroke-width="7"
+        stroke-linecap="round"/>
+  <path d="M78 69 L88 78 L78 87" fill="none" stroke="#ffffff" stroke-width="7"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#99c1f1">
+    <circle cx="44" cy="78" r="3.4"/>
+    <circle cx="34" cy="78" r="2.6"/>
+    <circle cx="25" cy="78" r="1.9"/>
+  </g>
+</svg>
