@@ -39,7 +39,8 @@ FORBIDDEN_PATTERNS = (
     r"--talk-name=org\.freedesktop\.systemd1",
 )
 
-ENGINE_COMMIT = "84f4795ea76f9c3168a61e478d0fe0e5c3238308"
+GO_SOURCES = REPO / "go.mod.yml"
+MODULES_TXT = REPO / "modules.txt"
 
 
 def manifest_text() -> str:
@@ -86,10 +87,90 @@ def test_no_host_filesystem_access_at_all():
     assert "--filesystem" not in manifest_code()
 
 
-def test_engine_is_pinned_by_commit():
-    # A tag alone can be moved; the commit cannot.
-    assert ENGINE_COMMIT in (REPO / "scripts" / "fetch-engine.sh").read_text()
-    assert ENGINE_COMMIT in manifest_text()
+def engine_module() -> str:
+    """Just the engine module, so assertions cannot stray into the app module."""
+    text = manifest_text()
+    start = text.index("  - name: awg-tunnel-engine")
+    rest = text[start + 1 :]
+    end = re.search(r"^  - name: ", rest, re.M)
+    return rest[: end.start()] if end else rest
+
+
+def engine_pin() -> tuple[str, str]:
+    """The engine tag and commit, read out of the engine module."""
+    module = engine_module()
+    tag = re.search(r"^\s+tag: (\S+)$", module, re.M)
+    commit = re.search(r"^\s+commit: ([0-9a-f]{40})$", module, re.M)
+    assert tag, "engine source has no tag"
+    assert commit, "engine source has no 40-character commit"
+    return tag.group(1), commit.group(1)
+
+
+def test_engine_is_pinned_by_commit_not_only_tag():
+    # A tag can be moved; the commit cannot. Both are asserted structurally so
+    # that bumping the engine does not require editing this test — the point is
+    # that a pin exists, not which one.
+    engine_pin()
+
+
+def test_engine_source_is_upstream_not_a_local_copy():
+    module = engine_module()
+    assert "url: https://github.com/artem-russkikh/wireproxy-awg.git" in module
+    # A `type: dir` engine source would mean somebody reintroduced a vendored
+    # copy, which Flathub's builders cannot see.
+    assert "type: dir" not in module
+
+
+def test_engine_version_string_matches_the_pin():
+    # The binary reports this to the log view and to bug reports, so a stale
+    # value here is a lie about what is running.
+    tag, _ = engine_pin()
+    assert f"-X main.version={tag}" in manifest_text()
+
+
+def test_go_modules_are_declared_and_hash_pinned():
+    assert GO_SOURCES.is_file(), "go.mod.yml is missing"
+    assert MODULES_TXT.is_file(), "modules.txt is missing"
+
+    sources = GO_SOURCES.read_text(encoding="utf-8")
+    urls = re.findall(r"^  url: (\S+)$", sources, re.M)
+    hashes = re.findall(r"^  sha256: ([0-9a-f]{64})$", sources, re.M)
+
+    assert urls, "no module archives declared"
+    # Every archive needs a hash: an unpinned one would be a silent hole in the
+    # only integrity check the build has, since vendor mode ignores go.sum.
+    assert len(urls) == len(hashes)
+    assert all(url.startswith("https://proxy.golang.org/") for url in urls)
+
+    # The engine is only useful to us because of its obfuscation support.
+    assert any("amnezia-vpn/amneziawg-go" in url for url in urls)
+
+
+def test_manifest_references_the_generated_sources():
+    assert re.search(r"^      - go\.mod\.yml$", manifest_text(), re.M)
+
+
+def test_modules_txt_covers_every_declared_module():
+    # `go build -mod=vendor` fails if modules.txt and the vendor tree disagree,
+    # which would only surface deep inside a Flatpak build. Cheaper to catch
+    # the mismatch here.
+    declared = {
+        re.sub(
+            r"/v\d+$",
+            "",
+            url.split("/@v/")[0].removeprefix("https://proxy.golang.org/"),
+        )
+        for url in re.findall(r"^  url: (\S+)$", GO_SOURCES.read_text(), re.M)
+    }
+    listed = {
+        re.sub(r"/v\d+$", "", line.split()[1])
+        for line in MODULES_TXT.read_text(encoding="utf-8").splitlines()
+        if line.startswith("# ")
+    }
+    # Module paths on the proxy are case-escaped ("!make!now!just"), so compare
+    # case-insensitively after undoing the escaping.
+    normalise = {re.sub(r"!(.)", lambda m: m.group(1), d).lower() for d in declared}
+    assert normalise == {module.lower() for module in listed}
 
 
 def test_build_has_no_network_escape():

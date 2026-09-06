@@ -1,7 +1,9 @@
-# --- Vendored engine source -------------------------------------------------
-# Fetched and vendored by scripts/fetch-engine.sh: ~16 MB of Go dependencies,
-# reproducible from the commit pinned in that script, so it is not tracked.
-/vendor/wireproxy-awg/
+# --- Engine working copies ---------------------------------------------------
+# No upstream source is tracked here. The Flatpak build fetches the engine from
+# the commit pinned in the manifest and rebuilds its vendor/ tree from the
+# sha256-pinned archives in go.mod.yml. Local checkouts, made by
+# scripts/update-engine.sh or by hand for the e2e suite, are scratch.
+/vendor/
 
 # --- Flatpak build output ----------------------------------------------------
 /.flatpak-builder/

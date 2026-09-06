@@ -40,14 +40,28 @@ modules:
         GOPATH: /run/build/awg-tunnel-engine/.gopath
         GOCACHE: /run/build/awg-tunnel-engine/.gocache
     build-commands:
-      - go build -ldflags=-s -o awg-tunnel-engine ./cmd/wireproxy
+      # Same ldflags upstream's Makefile uses, so `--version` reports the real
+      # tag instead of a "-dev" placeholder in bug reports and the log view.
+      # scripts/update-engine.sh keeps the version in step with the pin below,
+      # and tests/test_manifest_policy.py fails if the two ever disagree.
+      - go build -ldflags="-s -w -X main.version=v1.0.18" -o awg-tunnel-engine ./cmd/wireproxy
       - install -Dm755 awg-tunnel-engine /app/bin/awg-tunnel-engine
       - install -Dm644 LICENSE /app/share/licenses/wireproxy-awg/LICENSE
     sources:
-      # Pinned to wireproxy-awg v1.0.18 (84f4795ea76f9c3168a61e478d0fe0e5c3238308)
-      # with Go modules vendored by scripts/fetch-engine.sh.
-      - type: dir
-        path: vendor/wireproxy-awg
+      # Unmodified upstream, pinned by commit as well as tag so that a moved
+      # tag cannot change what gets built. No engine source lives in this repo.
+      - type: git
+        url: https://github.com/artem-russkikh/wireproxy-awg.git
+        tag: v1.0.18
+        commit: 84f4795ea76f9c3168a61e478d0fe0e5c3238308
+        x-checker-data:
+          type: git
+          tag-pattern: ^v([\d.]+)$
+
+      # Upstream does not vendor, so its 15 Go modules are declared as
+      # sha256-pinned archives that rebuild the vendor/ tree. Regenerate with
+      # scripts/update-engine.sh; verify with scripts/verify-engine-sources.sh.
+      - go.mod.yml
 
   - name: awg-tunnel
     buildsystem: meson
@@ -57,7 +71,11 @@ modules:
         skip:
           - .flatpak-builder
           - .git
+          - .github
           - .work
           - build
+          - builddir
           - repo
           - vendor
+          - go.mod.yml
+          - modules.txt

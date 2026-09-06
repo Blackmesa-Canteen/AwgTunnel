@@ -1,0 +1,88 @@
+# Go module sources for the awg-tunnel-engine module. GENERATED — do not edit.
+#
+# Regenerate with scripts/update-engine.sh, which runs flatpak-go-mod inside a
+# container. Each entry reconstructs one module into the vendor/ tree from the
+# immutable Go module proxy, pinned by sha256.
+#
+# The integrity chain: `go mod download` verifies each zip against upstream's
+# go.sum, the generator hashes those verified zips, and flatpak-builder checks
+# the hash again at download time. Vendor mode does not consult go.sum, so
+# these sha256 values are the build's actual integrity guarantee.
+- dest: vendor
+  path: modules.txt
+  type: file
+- dest: vendor/github.com/MakeNowJust/heredoc/v2
+  sha256: 7ac894767be9970d8d524fb1b2f3589bf5ab6c560cc7b7af86d84b6a976d6297
+  strip-components: 4
+  type: archive
+  url: https://proxy.golang.org/github.com/!make!now!just/heredoc/v2/@v/v2.0.1.zip
+- dest: vendor/github.com/akamensky/argparse
+  sha256: ed01bdf3a88dae3b80efc9ddda310b64eb75797923a71c6fc60924bcfe5e675d
+  strip-components: 3
+  type: archive
+  url: https://proxy.golang.org/github.com/akamensky/argparse/@v/v1.4.0.zip
+- dest: vendor/github.com/amnezia-vpn/amneziawg-go/v3
+  sha256: a28fb9e0d1a560afd0cf396cc15370825799d66a1cf4079d644bcdf66a06bcfa
+  strip-components: 4
+  type: archive
+  url: https://proxy.golang.org/github.com/amnezia-vpn/amneziawg-go/v3/@v/v3.1.20260814.zip
+- dest: vendor/github.com/go-ini/ini
+  sha256: d77fe1b537b2e6db4040bd518b4755979006d5af7e82ae035aa2bc5d40c0ff55
+  strip-components: 3
+  type: archive
+  url: https://proxy.golang.org/github.com/go-ini/ini/@v/v1.67.0.zip
+- dest: vendor/github.com/landlock-lsm/go-landlock
+  sha256: bcb182e845dbb544787facc08faf3269d120cdde2a995620a30f801dd16c3750
+  strip-components: 3
+  type: archive
+  url: https://proxy.golang.org/github.com/landlock-lsm/go-landlock/@v/v0.6.0.zip
+- dest: vendor/github.com/things-go/go-socks5
+  sha256: f488adffb29b9b4f0ace6965097c854db4727b196e22aefe919eca6edf448461
+  strip-components: 3
+  type: archive
+  url: https://proxy.golang.org/github.com/things-go/go-socks5/@v/v0.0.5.zip
+- dest: vendor/golang.org/x/net
+  sha256: 3444c04eff1dc7a41a6386cb6a0b0b1facebfc7e222bae523043ed4b14039f76
+  strip-components: 3
+  type: archive
+  url: https://proxy.golang.org/golang.org/x/net/@v/v0.47.0.zip
+- dest: vendor/suah.dev/protect
+  sha256: 8cf4a6bdbd43452b9011c4a9dd61e2f664bb6eaa9e317178b0577d93cc7f792b
+  strip-components: 2
+  type: archive
+  url: https://proxy.golang.org/suah.dev/protect/@v/v1.2.4.zip
+- dest: vendor/github.com/google/btree
+  sha256: 11b736bc8252b52fecdf346d3707ccf3a2b6d458ba21b4f843616fc12eeb30b2
+  strip-components: 3
+  type: archive
+  url: https://proxy.golang.org/github.com/google/btree/@v/v1.1.3.zip
+- dest: vendor/golang.org/x/crypto
+  sha256: 416335b9102df16747b29fe58d034d6d9fb70af314740136fb0a37ae8c568705
+  strip-components: 3
+  type: archive
+  url: https://proxy.golang.org/golang.org/x/crypto/@v/v0.45.0.zip
+- dest: vendor/golang.org/x/sys
+  sha256: d7f9fe44300fc8d47b30d06cd001d9c62c54c6119818a19a2e33a93538971669
+  strip-components: 3
+  type: archive
+  url: https://proxy.golang.org/golang.org/x/sys/@v/v0.40.0.zip
+- dest: vendor/golang.org/x/time
+  sha256: e8a6b77acb93415e3819654d11f072c15eb1e72ba2bd37b6c732f05a359ff794
+  strip-components: 3
+  type: archive
+  url: https://proxy.golang.org/golang.org/x/time/@v/v0.9.0.zip
+- dest: vendor/golang.zx2c4.com/wintun
+  sha256: 06599222daa6af8547045c446cefa9a2bab19d57bde1fc6436114308d79a2b4b
+  strip-components: 2
+  type: archive
+  url: https://proxy.golang.org/golang.zx2c4.com/wintun/@v/v0.0.0-20230126152724-0fa3db229ce2.zip
+- dest: vendor/gvisor.dev/gvisor
+  sha256: 7d88ef58f76e8c338b87586f577032cc1618b97ce078affa525407a891d310aa
+  strip-components: 2
+  type: archive
+  url: https://proxy.golang.org/gvisor.dev/gvisor/@v/v0.0.0-20250718015824-35000683b6d7.zip
+- dest: vendor/kernel.org/pub/linux/libs/security/libcap/psx
+  sha256: 2a322ad5bc1c629e67363cbec31e0080df55b78fc40a342ac3f36b00a8a33998
+  strip-components: 7
+  type: archive
+  url: https://proxy.golang.org/kernel.org/pub/linux/libs/security/libcap/psx/@v/v1.2.77.zip
