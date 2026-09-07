@@ -7,6 +7,19 @@ Most of this codebase was written with AI assistance, directed and reviewed by
 a human maintainer — see [README.md](README.md#ai-assisted-development). That
 review, not the tag date below, is what "released" means here.
 
+## [0.1.1] - 2026-09-07
+
+### Fixed
+
+- `Engine.start` could pick the same free port for the SOCKS5 listener and
+  the metrics endpoint: releasing one probe socket before binding the next
+  let the kernel hand the just-freed port straight back, so the engine
+  occasionally failed to start with "address already in use". Ports are now
+  reserved while their probe sockets are still open.
+- The connectivity check's HTTPS request pinned no explicit TLS floor;
+  `ssl.create_default_context()` alone doesn't guarantee TLSv1/1.1 are
+  disabled on every OpenSSL build. `minimum_version` is now set explicitly.
+
 ## [0.1.0] - 2026-09-07
 
 First tagged build.
