@@ -148,6 +148,7 @@ def https_get(
     sock = open_connection(proxy_host, proxy_port, host, 443, timeout=timeout)
     try:
         context = ssl.create_default_context()
+        context.minimum_version = ssl.TLSVersion.TLSv1_2
         with context.wrap_socket(sock, server_hostname=host) as tls:
             tls.sendall(_request(host, path))
             return _read_body(tls, max_bytes)
