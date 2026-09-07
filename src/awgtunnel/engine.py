@@ -130,10 +130,29 @@ def find_engine() -> str:
 
 
 def _pick_free_port() -> int:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(("127.0.0.1", 0))
-        return int(sock.getsockname()[1])
+    return _pick_free_ports(1)[0]
+
+
+def _pick_free_ports(count: int) -> list[int]:
+    """Reserve ``count`` distinct free ports.
+
+    Binding and releasing each port separately races: the moment one probe
+    socket closes, the kernel can hand its port straight back to the next
+    probe. Keeping every socket open until all are bound means the kernel
+    can never assign the same port twice, at the cost of a (much smaller)
+    race between releasing them here and the engine binding them itself.
+    """
+    sockets = []
+    try:
+        for _ in range(count):
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind(("127.0.0.1", 0))
+            sockets.append(sock)
+        return [int(sock.getsockname()[1]) for sock in sockets]
+    finally:
+        for sock in sockets:
+            sock.close()
 
 
 def _runtime_dir() -> Path:
@@ -200,8 +219,7 @@ class Engine:
                 raise EngineError("Engine is already running")
 
             binary = self._binary or find_engine()
-            socks_port = _pick_free_port()
-            info_port = _pick_free_port()
+            socks_port, info_port = _pick_free_ports(2)
             config_path = self._write_config(profile, socks_port)
 
             try:
